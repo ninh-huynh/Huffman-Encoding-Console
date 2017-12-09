@@ -282,6 +282,7 @@ void HuffmanEncoding::Decode_a_File(const char * inputFileName, const char *outp
 	char sPath[512];
 	for(int i = 0; i < header.numOfFile; i++)
 	{
+		printf("%2.d %s\n", i + 1, header.data[i].fileName);
 		sprintf(sPath, "%s\\%s", outputFolder, header.data[i].fileName);
 		outputFile.open(sPath, ios::binary | ios::out);
 		inputFile.seekg(header.data[i].address);

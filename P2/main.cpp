@@ -1,36 +1,43 @@
 #include"Static Huffman.h"
-
+#include<iostream>
+using namespace std;
 int main()
 {
-	char buff[1024], buff1[1024], choice;
+	char buff[256], buff1[256];
+	int choice;
 	HuffmanEncoding HFE;
-	printf("Huffman Compression Program\n");
-	printf("1. Compress files in folder\n");
-	printf("2. View compressed filed info\n");
-	printf("3. Uncompress all file\n");
-	printf("4. Uncompress specific file\n");
-	printf("5. Exit\n");
+	cout << "Huffman Compression Program\n";
+	cout << "1. Compress files in folder\n";
+	cout << "2. View compressed filed info\n";
+	cout << "3. Uncompress all file\n";
+	cout << "4. Uncompress specific file\n";
+	cout << "5. Exit\n";
 	cin >> choice;
-	while (choice)
+	while (choice != 0)
 	{
 		switch (choice)
 		{
 		case 1:
-			printf("Enter the path to folder contain files :");
+			cout << "Enter the path to folder contain files :";
+			cin.ignore();
 			cin.getline(buff, 1024);
-			printf("Enter the result file name :");
+			cout << "Enter the result file name :";
+			//cin.ignore();
 			cin.getline(buff1, 1024);
 			HFE.Encode_a_Folder(buff, buff1);
 			break;
 		case 2:
-			printf("Enter the path to compressed file:");
+			cout << "Enter the path to compressed file:";
+			cin.ignore();
 			cin.getline(buff, 1024);
 			HFE.ListFiles(buff);
 			break;
 		case 3:
-			printf("Enter the path to folder contain compressed file:");
+			cout << "Enter the path to folder contain compressed file:";
+			cin.ignore();
 			cin.getline(buff, 1024);
-			printf("Enter the folder contain uncompress files:");
+			cout << "Enter the folder contain uncompress files:";
+			//cin.ignore();
 			cin.getline(buff1, 1024);
 			HFE.Decode_a_File(buff, buff1);
 			break;
@@ -39,12 +46,13 @@ int main()
 		}
 		system("pause");
 		system("cls");
-		printf("Huffman Compression Program\n");
-		printf("1. Compress files in folder\n");
-		printf("2. View compressed file info\n");
-		printf("3. Uncompress all file\n");
-		printf("4. Uncompress specific file\n");
-		printf("0. Exit\n");
+		cout << "Huffman Compression Program\n";
+		cout << "1. Compress files in folder\n";
+		cout << "2. View compressed file info\n";
+		cout << "3. Uncompress all file\n";
+		cout << "4. Uncompress specific file\n";
+		cout << "0. Exit\n";
+		cin >> choice;
 	}
 	return 0;
 }
