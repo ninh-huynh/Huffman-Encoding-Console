@@ -17,7 +17,7 @@ bool HuffmanNode::operator>(HuffmanNode node)
 
 bool HuffmanNode::isLeaf()
 {
-	return this->left == -1 || this->right == -1;
+	return this->left == -1 && this->right == -1;
 }
 
 void HuffmanTree::createBitCode(short index,string bitcode_)
@@ -247,32 +247,24 @@ void HuffmanEncoding::convertBit_Byte(char fileID)
 		outputFile.write((char*)&c, 1);
 }
 
-void HuffmanEncoding::Encode_a_File(const char * inputFilePath)
+void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id)
 {
-	tree.buildTree();
-	tree.createBitcode();
-
 	//Compress Data File
 	inputFile.open(inputFilePath, ios::binary | ios::in);
-	convertByte_Bit(header.data[header.idFile].bitUnused);
+	convertByte_Bit(header.data[id].bitUnused);
 
 	//Calculate for the compressSz 
 	unsigned int packedSz;
-	if (header.idFile == 0)
-		packedSz = outputFile.tellp();
-	else
-	{
-		unsigned int totalSz = 0;
-		for (int i = 0; i <= header.idFile - 1; i++)
-			totalSz += header.data[i].compressSz;
-		packedSz =(unsigned int) outputFile.tellp() - totalSz;
-	}
-	header.data[header.idFile].compressSz = packedSz;
+	unsigned int totalSz = 0;
+	for (int i = 0; i <= id - 1; i++)
+		totalSz += header.data[i].compressSz;
+	packedSz = (unsigned int)outputFile.tellp() - totalSz - header.size();
+	header.data[id].compressSz = packedSz;
 	
 	inputFile.close();
 }
 
-void HuffmanEncoding::Decode_a_File(const char * inputFileName, const char *outputFolder)
+void HuffmanEncoding::Decode_a_File(const char * inputFileName, const char *outputFolder, QUEUE<int> &idList)
 {
 	Read_a_File(inputFileName);
 	inputFile.open(inputFileName, ios::binary | ios::in);
@@ -280,16 +272,23 @@ void HuffmanEncoding::Decode_a_File(const char * inputFileName, const char *outp
 	tree.buildTree();
 	tree.createBitcode();
 	char sPath[512];
-	for(int i = 0; i < header.numOfFile; i++)
+	int i = 0;
+	if (idList.isEmpty())
 	{
-		printf("%2.d %s\n", i + 1, header.data[i].fileName);
-		sprintf(sPath, "%s\\%s", outputFolder, header.data[i].fileName);
+		for (int i = 1; i <= header.numOfFile; i++)
+			idList.enqueue(i);
+	}
+	
+	while (!idList.isEmpty())
+	{
+		idList.dequeue(i);
+		printf("%2.d %s\n", i, header.data[i -1].fileName);
+		sprintf(sPath, "%s\\%s", outputFolder, header.data[i - 1].fileName);
 		outputFile.open(sPath, ios::binary | ios::out);
-		inputFile.seekg(header.data[i].address);
-		convertBit_Byte(i);
+		inputFile.seekg(header.data[i - 1].address);
+		convertBit_Byte(i - 1);
 		outputFile.close();
 	}
-
 	inputFile.close();
 }
 
@@ -311,7 +310,6 @@ void CompressFileHeader::write(fstream &fOut)
 	fOut.write((char*)&numOfFile, sizeof(numOfFile));
 	for (int i = 0; i < numOfFile; i++)
 		data[i].write(fOut);
-
 }
 
 bool CompressFileHeader::read(fstream &fIn)
@@ -327,11 +325,44 @@ bool CompressFileHeader::read(fstream &fIn)
 	return true;
 }
 
+void CompressFileHeader::setNumberOfFile(short nFile)
+{
+	if (nFile < 1)
+		return;
+	numOfFile = nFile;
+	data = new DataFileInfo[numOfFile];
+}
+
+void CompressFileHeader::setFileInfo(const char * name, unsigned int size, char id)
+{
+	data[id].initFileName(name);
+	data[id].originalSz = size;
+}
+
+DataFileInfo::DataFileInfo()
+{
+	address = originalSz = compressSz = 0xFFFFFFFF;
+	fileName = nullptr;
+	fileNameLength = 0;
+	bitUnused = 0;
+}
+
+DataFileInfo::~DataFileInfo()
+{
+	if (!fileName)
+		delete[]fileName;
+	address = originalSz = compressSz = 0xFFFFFFFF;
+	fileName = nullptr;
+	fileNameLength = 0;
+	bitUnused = 0;
+}
+
 void DataFileInfo::initFileName(const char * name)
 {
 	fileNameLength = strlen(name);
-	fileName = new char[fileNameLength];
+	fileName = new char[fileNameLength + 1];
 	strcpy(fileName, name);
+	fileName[fileNameLength] = '\0';
 }
 
 void DataFileInfo::write(fstream & fOut)
@@ -378,14 +409,19 @@ void DataFileInfo::read(fstream & fIn)
 
 void HuffmanEncoding::PrepareForEncode(const char *sDir)
 {
+	unsigned short totalFile = getTotalFile(sDir);
+	header.setNumberOfFile(totalFile);
+
 	WIN32_FIND_DATA fdFile;
 	HANDLE hFind = NULL;
 	char sPath[256];
 	sprintf(sPath, "%s\\*.*", sDir);
 	if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
 	{
-		
+		printf("Path not found : %s", sPath);
+		return;
 	}
+
 	do
 	{
 		if (strcmp(fdFile.cFileName, ".") != 0
@@ -393,23 +429,29 @@ void HuffmanEncoding::PrepareForEncode(const char *sDir)
 		{
 			if (!(fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY))
 			{
+				static int id = 0;
+				header.setFileInfo(fdFile.cFileName, fdFile.nFileSizeLow, id++);
 				sprintf(sPath, "%s\\%s", sDir, fdFile.cFileName);
 				tree.countChar(sPath);
 			}
 		}
 	} while (FindNextFile(hFind, &fdFile));
 	FindClose(hFind);
+
+	tree.exportFeqTab(header.Freq);
+	tree.buildTree();
+	tree.createBitcode();
 }
 
 void HuffmanEncoding::computeAddress()
 {
 	unsigned int totalSz = 0;
-	totalSz += header.size();
-	header.data[0].address = totalSz;
-
-	for (int i = 1; i < header.numOfFile; i++)
+	for (int i = 0; i < header.numOfFile; i++)
 	{
-		totalSz += header.data[i - 1].compressSz;
+		if (i == 0)
+			totalSz = header.size();
+		else
+			totalSz += header.data[i - 1].compressSz;
 		header.data[i].address = totalSz;
 	}
 }
@@ -424,54 +466,21 @@ void HuffmanEncoding::Read_a_File(const char * inputFileName)
 void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileName)
 {
 	PrepareForEncode(sDir);
-	tree.exportFeqTab(header.Freq);
+	outputFile.open(outputFileName, ios::binary | ios::out);
 
-	outputFile.open("tmp.out", ios::binary | ios::out);
-	unsigned short totalFile = getTotalFile(sDir);
-	header.numOfFile = totalFile;
-	header.data = new DataFileInfo[totalFile];
-	header.idFile = -1;
-
-	WIN32_FIND_DATA fdFile;
-	HANDLE hFind = NULL;
+	header.write(outputFile);
 	char sPath[256];
-	sprintf(sPath, "%s\\*.*", sDir);
-	if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
+	for (int i = 0; i < header.numOfFile; i++)
 	{
-		printf("Path not found: [%s]\n", sDir);
-		return;
+		sprintf(sPath, "%s\\%s", sDir, header.data[i].fileName);
+		Encode_a_File(sPath, i);
+		printf("%s\t%d Done!\n", header.data[i].fileName, header.data[i].originalSz);
 	}
 
-	printf("File in path [%s] : \n", sDir);
-	do
-	{
-		if (strcmp(fdFile.cFileName, ".") != 0
-			&& strcmp(fdFile.cFileName, "..") != 0)
-		{
-			if (!(fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY))
-			{
-				//Save basic info of the file into header
-				header.idFile++;											//
-				header.data[header.idFile].originalSz = fdFile.nFileSizeLow;//
-				header.data[header.idFile].initFileName(fdFile.cFileName);	//
-				sprintf(sPath, "%s\\%s", sDir, fdFile.cFileName);			
-				Encode_a_File(sPath);							
-				printf("%s\t%d\n", fdFile.cFileName, fdFile.nFileSizeLow);
-			}
-		}
-	} while (FindNextFile(hFind, &fdFile));
-	FindClose(hFind);
-	outputFile.close();
-
 	computeAddress();
-	inputFile.open("tmp.out", ios::binary | ios::in);
-	outputFile.open(outputFileName, ios::binary | ios::out);
+	outputFile.seekp(ios::beg);
 	header.write(outputFile);
-	TransferData(inputFile, outputFile);
-	inputFile.close();
 	outputFile.close();
-	DeleteFile("tmp.out");
-
 }
 
 unsigned short getTotalFile(const char * sDir)
@@ -506,12 +515,4 @@ unsigned short getTotalFile(const char * sDir)
 	return totalFile;
 }
 
-void TransferData(fstream & inFile, fstream & outFile)
-{
-	char data;
-	while (inFile.get(data))
-	{
-		outFile << data;
-	}
-}
 

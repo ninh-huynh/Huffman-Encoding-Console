@@ -1,4 +1,5 @@
 #include"Static Huffman.h"
+#include"Queue.cpp"
 #include<iostream>
 using namespace std;
 int main()
@@ -32,16 +33,26 @@ int main()
 			cin.getline(buff, 1024);
 			HFE.ListFiles(buff);
 			break;
-		case 3:
+		case 3: case 4:
 			cout << "Enter the path to folder contain compressed file:";
 			cin.ignore();
 			cin.getline(buff, 1024);
 			cout << "Enter the folder contain uncompress files:";
 			//cin.ignore();
 			cin.getline(buff1, 1024);
-			HFE.Decode_a_File(buff, buff1);
-			break;
-		case 4:
+			QUEUE<int> idList;
+			if (choice == 4)
+			{
+				HFE.ListFiles(buff);
+				cout << "Nhap stt cac file can giai nen. Nhap 0 de ket thuc";
+				cin >> choice;
+				while (choice)
+				{
+					idList.enqueue(choice);
+					cin >> choice;
+				}
+			}
+			HFE.Decode_a_File(buff, buff1, idList);
 			break;
 		}
 		system("pause");

@@ -113,6 +113,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PriorityQueue.cpp" />
+    <ClCompile Include="Queue.cpp" />
     <ClCompile Include="Static Huffman.cpp" />
   </ItemGroup>
   <ItemGroup>

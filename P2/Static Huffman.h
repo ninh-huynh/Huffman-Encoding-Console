@@ -4,6 +4,7 @@
 #include<fstream>
 #include<string>
 #include<Windows.h>
+#include"Queue.cpp"
 using namespace std;
 #define MAX_NODE 511
 
@@ -63,10 +64,8 @@ public:
 class DataFileInfo 
 {
 public:
-	/*~DataFileInfo()
-	{
-		delete[]fileName;
-	}*/
+	DataFileInfo();
+	~DataFileInfo();
 	unsigned int originalSz, compressSz;	//4 bytes + 4bytes
 	unsigned char fileNameLength;
 	char *fileName;			//20 bytes
@@ -87,7 +86,6 @@ public:
 class CompressFileHeader
 {
 public:
-	short idFile;
 	char signature[3];			//3 bytes
 	unsigned int Freq[256];		//256*4 = 1024 bytes
 	short numOfFile;			//2 bytes
@@ -95,11 +93,16 @@ public:
 	CompressFileHeader()
 	{
 		strcpy(signature, "hfm");
+		numOfFile = 0;
+		data = nullptr;
 	}
-	/*~CompressFileHeader()
+	~CompressFileHeader()
 	{
-		delete[]data;
-	}*/
+		if (!data)
+			delete[]data;
+		numOfFile = 0;
+		data = nullptr;
+	}
 	unsigned int size()
 	{
 		unsigned int sz = 0;
@@ -110,6 +113,8 @@ public:
 	}
 	void write(fstream &fOut);
 	bool read(fstream &fIn);
+	void setNumberOfFile(short nFile);
+	void setFileInfo(const char *name, unsigned int size, char id);
 };
 
 class HuffmanEncoding
@@ -125,11 +130,9 @@ public:
 	void computeAddress();
 	void Read_a_File(const char *inputFileName);
 	void Encode_a_Folder(const char *sDir, const char *outputName);
-	void Encode_a_File(const char *inputFilePath);
-	void Decode_a_File(const char *inputFileName, const char *outputFolder);
+	void Encode_a_File(const char *inputFilePath, int id);
+	void Decode_a_File(const char *inputFileName, const char *outputFolder,QUEUE<int> &idList);
 	void ListFiles(const char *fileName);
 };
 
 unsigned short getTotalFile(const char *dir);
-void TransferData(fstream &inFile, fstream &outFile);
-//void mainProcess(const char *sDir);
