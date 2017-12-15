@@ -1,249 +1,56 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Static Huffman.h"
-#include"PriorityQueue.cpp"
-bool HuffmanNode::operator < (HuffmanNode node)
-{
-	if (this->freq == node.freq)
-		return this->c < node.c;
-	return this->freq < node.freq;
-}
-
-bool HuffmanNode::operator>(HuffmanNode node)
-{
-	if (this->freq == node.freq)
-		return this->c > node.c;
-	return this->freq > node.freq;
-}
-
-bool HuffmanNode::isLeaf()
-{
-	return this->left == -1 && this->right == -1;
-}
-
-void HuffmanTree::createBitCode(short index,string bitcode_)
-{	
-	if (!HuffTree[index].isLeaf())
-	{
-		createBitCode(HuffTree[index].left, bitcode_ + '0');
-		createBitCode(HuffTree[index].right, bitcode_ + '1');
-	}
-	else
-	{
-		bitCode[index] = bitcode_;
-	}
-}
-
-bool HuffmanTree::countChar(const char * fileName)
-{
-	fstream inFile(fileName, ios::binary | ios::in);
-	unsigned char tmp;
-	inFile.read((char*)&tmp, 1);
-	while (!inFile.eof())
-	{
-		HuffTree[tmp].increseFreq();
-		inFile.read((char*)&tmp, 1);
-	}
-
-	inFile.close();
-	return true;
-}
-
-void HuffmanTree::exportFeqTab(unsigned int F[])
-{
-	for (int i = 0; i < 256; i++)
-		F[i] = HuffTree[i].getFreq();
-}
-
-void HuffmanTree::initFeqTab(unsigned int F[])
-{
-	for (int i = 0; i < 256; i++)
-		HuffTree[i].increseFreq(F[i]);
-}
-
-void HuffmanTree::buildTree()
-{
-	PRIORITY_QUEUE<HuffmanNode> queue(MAX_NODE);
-	int i;
-	for (i = 0; i < 256; i++)
-		if (HuffTree[i].getFreq() != 0)
-			queue.insert(HuffTree[i]);
-
-	HuffmanNode x, y;
-	while (true)
-	{
-		queue.deleteMin(x);
-		if (queue.deleteMin(y) == false)
-			break;
-		if (x < y)
-			HuffTree[i].initNode(x.getChar(), x.getFreq() + y.getFreq(), x.getId(), y.getId(), i);
-		else if (x > y)
-			HuffTree[i].initNode(y.getChar(), x.getFreq() + y.getFreq(), y.getId(), x.getId(), i);
-		
-		queue.insert(HuffTree[i]);
-		i++;
-	}
-	root = x.getId();
-}
-
-void HuffmanTree::createBitcode()
-{
-	createBitCode(root, "");
-}
-
-bool HuffmanTree::getChar(string &bitNum,unsigned char & c)
-{
-	int index = root, i = 0;
-	while (!HuffTree[index].isLeaf() && i <bitNum.length())
-	{
-		if (bitNum[i] == '0')
-			index = HuffTree[index].left;
-		else
-			index = HuffTree[index].right;
-		i++;
-	}
-
-	if (HuffTree[index].isLeaf())
-	{
-		c = index;
-		bitNum.erase(0, i);
-		return true;
-	}
-	else
-		return false;
-
-}
-
-void HuffmanTree::huffTreeOut()
-{
-	
-	for (int i = 0; i < MAX_NODE; i++)
-	{
-		if (HuffTree[i].getFreq() != 0)
-		{
-			if (i == root)
-				cout << "Root : " << root << endl;
-			else
-				cout << "Index : " << i << endl;
-			HuffTree[i].NodeOut();
-			cout << endl;
-		}
-	}
-}
-
-void HuffmanTree::bitCodeOut()
-{
-	for (int i = 0; i < 256; i++)
-		if (HuffTree[i].getFreq() != 0)
-			cout << i << " : " << bitCode[i] << endl;
-}
-
-void HuffmanNode::initNode(unsigned char ch, unsigned int frq, short l, short r, short idx)
-{
-	c = ch;
-	freq = frq;
-	left = l;
-	right = r;
-	id = idx;
-}
-
-unsigned char HuffmanNode::getChar()
-{
-	return c;
-}
-
-unsigned int HuffmanNode::getFreq()
-{
-	return freq;
-}
-
-short HuffmanNode::getId()
-{
-	return id;
-}
-
-void HuffmanNode::setChar(unsigned char ch)
-{
-	c = ch;
-}
-
-void HuffmanNode::increseFreq(int k)
-{
-	freq += k;
-}
-
-void HuffmanNode::NodeOut()
-{
-	cout << c << ":" << freq << endl;
-	cout << left << "|" << right << endl;
-}
 
 void HuffmanEncoding::convertByte_Bit(char &bit_unused)
 {
-	unsigned char c, magicNumber;
-	string bit;
+	unsigned char c, byteOut;
+	BITS bits;
 
 	inputFile.read((char*)&c, 1);
-	bit = "";
-	
-	while (!inputFile.eof() || bit.length() >= 8)
+	while (!inputFile.eof())
 	{
-		if (bit.length() < 8)
+		if (!bits.isByte())
 		{
-			bit += tree.getBitCode(c);
+			bits += tree.getBitCode(c);
 			inputFile.read((char*)&c, 1);
 		}
-		
-		while(bit.length() >= 8)
+
+		while (bits.isByte())
 		{
-			magicNumber = 0;
-			for (int i = 0; i < 8; i++)
-				if (bit[i] == '1')
-					magicNumber |=  (1 << 7 - i);
-			outputFile.write((char*)&magicNumber, 1);
-			bit.erase(0, 8);
+			bits.pop_a_Byte(byteOut);
+			outputFile.write((char*)&byteOut, 1);
 		}
 	}
 	//last byte (some bit may unused)
-	magicNumber = 0;
-	for (int i = 0; i < bit.length(); i++)
-	{
-		if (bit[i] == '1')
-			magicNumber |= (1 << 7 - i);
-	}
-	bit_unused = bit.length();
-	outputFile.write((char*)&magicNumber, 1);
+	bit_unused = bits.size();
+	bits.pop_a_Byte(byteOut);
+	outputFile.write((char*)&byteOut, 1);
 }
 
 void HuffmanEncoding::convertBit_Byte(char fileID)
 {
+	inputFile.seekg(header.data[fileID].address);
 	unsigned char c, getBit = 0;
 	unsigned int pos;
-	string bit;
+	BITS bits;
 	inputFile.read((char*)&c, 1);
 	pos = inputFile.tellg();
 
 	while (pos != header.data[fileID].address + header.data[fileID].compressSz)
 	{
-		for (int i = 0; i < 8; i++)
-		{
-			getBit = (c >> (7 - i)) & 1;
-			bit += getBit == 0 ? '0' : '1';
-		}
-
-		while(tree.getChar(bit,c) == true)
-			outputFile.write((char*)&c, 1);
+		bits.push_back(c);
 		
+		while (tree.getChar(bits, c) == true)
+			outputFile.write((char*)&c, 1);
+
 		inputFile.read((char*)&c, 1);
 		pos = inputFile.tellg();
 	}
 	//Process the last byte
-	for (int i = 0; (i < 8 && header.data[fileID].bitUnused == 0)
-		|| (i < header.data[fileID].bitUnused && header.data[fileID].bitUnused != 0); i++)
-	{
-		getBit = (c >> (7 - i)) & 1;
-		bit += getBit == 0 ? '0' : '1';
-	}
-	while (tree.getChar(bit, c) == true)
+	if (header.data[fileID].bitUnused != 0)
+		bits.push_back(c, header.data[fileID].bitUnused);
+	
+	while (tree.getChar(bits, c) == true)
 		outputFile.write((char*)&c, 1);
 }
 
@@ -264,8 +71,22 @@ void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id)
 	inputFile.close();
 }
 
-void HuffmanEncoding::Decode_a_File(const char * inputFileName, const char *outputFolder, QUEUE<int> &idList)
+void HuffmanEncoding::Decode_a_File(const char * outputFolder, int id)
 {
+	char sPath[512];
+	sprintf(sPath, "%s\\%s", outputFolder, header.data[id - 1].fileName);
+	outputFile.open(sPath, ios::binary | ios::out);
+	convertBit_Byte(id - 1);
+	int decodeSz = 0;
+	decodeSz =(unsigned int) outputFile.tellp();
+	checkSum = decodeSz == header.data[id - 1].originalSz ? true : false;
+	printf("%2.d %s\t%s Done!\n", id, header.data[id - 1].fileName, checkSum ? "No Error" : "Error");
+	outputFile.close();
+}
+
+void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outputFolder, QUEUE<int> &idList)
+{
+	
 	Read_a_File(inputFileName);
 	inputFile.open(inputFileName, ios::binary | ios::in);
 	tree.initFeqTab(header.Freq);
@@ -279,16 +100,11 @@ void HuffmanEncoding::Decode_a_File(const char * inputFileName, const char *outp
 			idList.enqueue(i);
 	}
 	
-	while (!idList.isEmpty())
+	while (idList.dequeue(i) == true)
 	{
-		idList.dequeue(i);
-		printf("%2.d %s\n", i, header.data[i -1].fileName);
-		sprintf(sPath, "%s\\%s", outputFolder, header.data[i - 1].fileName);
-		outputFile.open(sPath, ios::binary | ios::out);
-		inputFile.seekg(header.data[i - 1].address);
-		convertBit_Byte(i - 1);
-		outputFile.close();
+		Decode_a_File(outputFolder, i);
 	}
+	viewSavingInfo();
 	inputFile.close();
 }
 
@@ -302,110 +118,12 @@ void HuffmanEncoding::ListFiles(const char * fileName)
 	}
 }
 
-void CompressFileHeader::write(fstream &fOut)
+void HuffmanEncoding::viewSavingInfo()
 {
-	fOut.seekp(ios::beg);
-	fOut.write(signature, sizeof(signature));
-	fOut.write((char*)&Freq, sizeof(Freq));
-	fOut.write((char*)&numOfFile, sizeof(numOfFile));
-	for (int i = 0; i < numOfFile; i++)
-		data[i].write(fOut);
+	for (int i = 0; i < header.numOfFile; i++)
+		cout << "bit unused : " << (short)header.data[i].bitUnused << endl;
 }
 
-bool CompressFileHeader::read(fstream &fIn)
-{
-	fIn.read(signature, sizeof(signature));
-	if (strcmp(signature, "hfm") != 0)
-		return false;
-	fIn.read((char*)&Freq, sizeof(Freq));
-	fIn.read((char*)&numOfFile, sizeof(numOfFile));
-	data = new DataFileInfo[numOfFile];
-	for (int i = 0; i < numOfFile; i++)
-		data[i].read(fIn);
-	return true;
-}
-
-void CompressFileHeader::setNumberOfFile(short nFile)
-{
-	if (nFile < 1)
-		return;
-	numOfFile = nFile;
-	data = new DataFileInfo[numOfFile];
-}
-
-void CompressFileHeader::setFileInfo(const char * name, unsigned int size, char id)
-{
-	data[id].initFileName(name);
-	data[id].originalSz = size;
-}
-
-DataFileInfo::DataFileInfo()
-{
-	address = originalSz = compressSz = 0xFFFFFFFF;
-	fileName = nullptr;
-	fileNameLength = 0;
-	bitUnused = 0;
-}
-
-DataFileInfo::~DataFileInfo()
-{
-	if (!fileName)
-		delete[]fileName;
-	address = originalSz = compressSz = 0xFFFFFFFF;
-	fileName = nullptr;
-	fileNameLength = 0;
-	bitUnused = 0;
-}
-
-void DataFileInfo::initFileName(const char * name)
-{
-	fileNameLength = strlen(name);
-	fileName = new char[fileNameLength + 1];
-	strcpy(fileName, name);
-	fileName[fileNameLength] = '\0';
-}
-
-void DataFileInfo::write(fstream & fOut)
-{
-	char *buff, *pCur;
-	buff = new char[this->size()];
-
-	pCur = buff;
-
-	memcpy(pCur, (char*) &originalSz, sizeof(originalSz));
-	pCur += sizeof(originalSz);
-	
-	memcpy(pCur, (char*)&compressSz, sizeof(compressSz));
-	pCur += sizeof(compressSz);
-
-	memcpy(pCur, (char*)&fileNameLength, sizeof(fileNameLength));
-	pCur += sizeof(fileNameLength);
-
-	memcpy(pCur, fileName, fileNameLength);
-	pCur += fileNameLength;
-
-	memcpy(pCur, (char*)&bitUnused, sizeof(bitUnused));
-	pCur += sizeof(bitUnused);
-
-	memcpy(pCur, (char*)&address, sizeof(address));
-	pCur += sizeof(address);
-	
-	fOut.write(buff, this->size());
-	delete[] buff;
-	buff = pCur = nullptr;
-}
-
-void DataFileInfo::read(fstream & fIn)
-{
-	fIn.read((char*)&originalSz, sizeof(originalSz));
-	fIn.read((char*)&compressSz, sizeof(compressSz));
-	fIn.read((char*)&fileNameLength, sizeof(fileNameLength));
-
-	this->fileName = new char[fileNameLength + 1];
-	fIn.read(fileName, fileNameLength); fileName[fileNameLength] = '\0';
-	fIn.read(&bitUnused, sizeof(bitUnused));
-	fIn.read((char*)&address, sizeof(address));
-}
 
 void HuffmanEncoding::PrepareForEncode(const char *sDir)
 {
@@ -480,6 +198,7 @@ void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileNa
 	computeAddress();
 	outputFile.seekp(ios::beg);
 	header.write(outputFile);
+	
 	outputFile.close();
 }
 

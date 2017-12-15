@@ -1,28 +1,30 @@
-#include"Static Huffman.h"
-#include"Queue.cpp"
 #include<iostream>
 using namespace std;
+
+#include"Static Huffman.h"
+#include"Queue.cpp"
+
 int main()
 {
-	char buff[256], buff1[256];
 	int choice;
-	HuffmanEncoding HFE;
 	cout << "Huffman Compression Program\n";
 	cout << "1. Compress files in folder\n";
 	cout << "2. View compressed filed info\n";
 	cout << "3. Uncompress all file\n";
 	cout << "4. Uncompress specific file\n";
-	cout << "5. Exit\n";
+	cout << "0. Exit\n";
 	cin >> choice;
-	while (choice != 0)
+	while (choice)
 	{
+		char buff[256], buff1[256];
+		HuffmanEncoding HFE;
 		switch (choice)
 		{
 		case 1:
 			cout << "Enter the path to folder contain files :";
 			cin.ignore();
 			cin.getline(buff, 1024);
-			cout << "Enter the result file name :";
+			cout << "Enter the result path + file name :";
 			//cin.ignore();
 			cin.getline(buff1, 1024);
 			HFE.Encode_a_Folder(buff, buff1);
@@ -34,7 +36,7 @@ int main()
 			HFE.ListFiles(buff);
 			break;
 		case 3: case 4:
-			cout << "Enter the path to folder contain compressed file:";
+			cout << "Enter the path to compressed file:";
 			cin.ignore();
 			cin.getline(buff, 1024);
 			cout << "Enter the folder contain uncompress files:";
@@ -52,7 +54,7 @@ int main()
 					cin >> choice;
 				}
 			}
-			HFE.Decode_a_File(buff, buff1, idList);
+			HFE.Decode_Files(buff, buff1, idList);
 			break;
 		}
 		system("pause");
@@ -65,5 +67,6 @@ int main()
 		cout << "0. Exit\n";
 		cin >> choice;
 	}
+
 	return 0;
 }

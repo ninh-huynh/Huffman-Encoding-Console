@@ -111,12 +111,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bits.cpp" />
+    <ClCompile Include="CompressFileHeader.cpp" />
+    <ClCompile Include="DataFileInfo.cpp" />
+    <ClCompile Include="HuffmanNode.cpp" />
+    <ClCompile Include="HuffmanTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PriorityQueue.cpp" />
     <ClCompile Include="Queue.cpp" />
     <ClCompile Include="Static Huffman.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bits.h" />
+    <ClInclude Include="CompressFileHeader.h" />
+    <ClInclude Include="DataFileInfo.h" />
+    <ClInclude Include="HuffmanNode.h" />
+    <ClInclude Include="HuffmanTree.h" />
     <ClInclude Include="Static Huffman.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
