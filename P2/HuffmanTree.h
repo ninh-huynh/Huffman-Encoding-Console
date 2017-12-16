@@ -14,9 +14,7 @@ class HuffmanTree
 private:
 	short root;
 	HuffmanNode HuffTree[MAX_NODE];
-	//string bitCode[256];
 	BITS bitCode[256];
-	//void createBitCode(short index, string bitcode_);
 	void createBitCode(short index, BITS bitcode_);
 public:
 	HuffmanTree()
@@ -29,15 +27,10 @@ public:
 	void initFeqTab(unsigned int F[]);
 	void buildTree();
 	void createBitcode();
-	/*string getBitCode(const unsigned char c)
-	{
-		return bitCode[c];
-	}*/
 	BITS getBitCode(const unsigned char c)
 	{
 		return bitCode[c];
 	}
-	//bool getChar(string &bitNum, unsigned char &c);
 	bool getChar(BITS &bits, unsigned char &c);
 	void huffTreeOut();
 	void bitCodeOut();

@@ -70,3 +70,13 @@ int main()
 
 	return 0;
 }
+
+//int main()
+//{
+//	BITS bits;
+//	bits.push_back(0x19);
+//	bits.toString();	cout << endl;
+//	bits.push_back(0x19);
+//	bits.toString();	cout << endl;
+//	system("pause");
+//}

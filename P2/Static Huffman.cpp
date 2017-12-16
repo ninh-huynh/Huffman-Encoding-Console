@@ -96,7 +96,7 @@ void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outpu
 	int i = 0;
 	if (idList.isEmpty())
 	{
-		for (int i = 1; i <= header.numOfFile; i++)
+		for (int i = 1; i <= header.nFile; i++)
 			idList.enqueue(i);
 	}
 	
@@ -104,7 +104,6 @@ void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outpu
 	{
 		Decode_a_File(outputFolder, i);
 	}
-	viewSavingInfo();
 	inputFile.close();
 }
 
@@ -112,7 +111,7 @@ void HuffmanEncoding::ListFiles(const char * fileName)
 {
 	Read_a_File(fileName);
 	printf("   File name\t\tSize\t\tPacked\n");
-	for (int i = 0; i < header.numOfFile; i++)
+	for (int i = 0; i < header.nFile; i++)
 	{
 		printf("%2.d %s\t\t%d\t\t%d\n", i+1, header.data[i].fileName, header.data[i].originalSz, header.data[i].compressSz);
 	}
@@ -120,10 +119,9 @@ void HuffmanEncoding::ListFiles(const char * fileName)
 
 void HuffmanEncoding::viewSavingInfo()
 {
-	for (int i = 0; i < header.numOfFile; i++)
+	for (int i = 0; i < header.nFile; i++)
 		cout << "bit unused : " << (short)header.data[i].bitUnused << endl;
 }
-
 
 void HuffmanEncoding::PrepareForEncode(const char *sDir)
 {
@@ -164,7 +162,7 @@ void HuffmanEncoding::PrepareForEncode(const char *sDir)
 void HuffmanEncoding::computeAddress()
 {
 	unsigned int totalSz = 0;
-	for (int i = 0; i < header.numOfFile; i++)
+	for (int i = 0; i < header.nFile; i++)
 	{
 		if (i == 0)
 			totalSz = header.size();
@@ -188,7 +186,7 @@ void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileNa
 
 	header.write(outputFile);
 	char sPath[256];
-	for (int i = 0; i < header.numOfFile; i++)
+	for (int i = 0; i < header.nFile; i++)
 	{
 		sprintf(sPath, "%s\\%s", sDir, header.data[i].fileName);
 		Encode_a_File(sPath, i);

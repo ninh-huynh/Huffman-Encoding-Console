@@ -6,15 +6,15 @@ class CompressFileHeader
 public:
 	char signature[3];			//3 bytes
 	unsigned int Freq[256];		//256*4 = 1024 bytes
-	short numOfFile;			//2 bytes
-	DataFileInfo *data;			// ? * numOfFile
+	short nFile;			//2 bytes
+	DataFileInfo *data;			// ? * nFile
 	CompressFileHeader();
 	~CompressFileHeader();
 	unsigned int size()
 	{
 		unsigned int sz = 0;
-		sz += sizeof(signature) + sizeof(Freq) + sizeof(numOfFile);
-		for (int i = 0; i < numOfFile; i++)
+		sz += sizeof(signature) + sizeof(Freq) + sizeof(nFile);
+		for (int i = 0; i < nFile; i++)
 			sz += data[i].size();
 		return sz;
 	}

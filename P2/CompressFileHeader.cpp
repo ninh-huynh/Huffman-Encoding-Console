@@ -3,7 +3,7 @@
 CompressFileHeader::CompressFileHeader()
 {
 	strcpy(signature, "hfm");
-	numOfFile = 0;
+	nFile = 0;
 	data = nullptr;
 }
 
@@ -11,7 +11,7 @@ CompressFileHeader::~CompressFileHeader()
 {
 	if (!data)
 		delete[]data;
-	numOfFile = 0;
+	nFile = 0;
 	data = nullptr;
 }
 
@@ -20,8 +20,8 @@ void CompressFileHeader::write(fstream &fOut)
 	fOut.seekp(ios::beg);
 	fOut.write(signature, sizeof(signature));
 	fOut.write((char*)&Freq, sizeof(Freq));
-	fOut.write((char*)&numOfFile, sizeof(numOfFile));
-	for (int i = 0; i < numOfFile; i++)
+	fOut.write((char*)&nFile, sizeof(nFile));
+	for (int i = 0; i < nFile; i++)
 		data[i].write(fOut);
 }
 
@@ -31,19 +31,19 @@ bool CompressFileHeader::read(fstream &fIn)
 	if (strcmp(signature, "hfm") != 0)
 		return false;
 	fIn.read((char*)&Freq, sizeof(Freq));
-	fIn.read((char*)&numOfFile, sizeof(numOfFile));
-	data = new DataFileInfo[numOfFile];
-	for (int i = 0; i < numOfFile; i++)
+	fIn.read((char*)&nFile, sizeof(nFile));
+	data = new DataFileInfo[nFile];
+	for (int i = 0; i < nFile; i++)
 		data[i].read(fIn);
 	return true;
 }
 
-void CompressFileHeader::setNumberOfFile(short nFile)
+void CompressFileHeader::setNumberOfFile(short nFile_)
 {
-	if (nFile < 1)
+	if (nFile_ < 1)
 		return;
-	numOfFile = nFile;
-	data = new DataFileInfo[numOfFile];
+	nFile = nFile_;
+	data = new DataFileInfo[nFile];
 }
 
 void CompressFileHeader::setFileInfo(const char * name, unsigned int size, char id)

@@ -6,7 +6,6 @@ BITS::BITS()
 	length = 0;
 }
 
-
 BITS::~BITS()
 {
 	bit = 0;
@@ -36,14 +35,12 @@ void BITS::pop_a_Byte(unsigned char &out)
 
 void BITS::push_back(unsigned char uChar, char bitUnused)
 {
-	int i = 0, j = length, bitEnd;
-	bitEnd = bitUnused == 0 ? 8 : bitUnused;
-	for ( ; i < bitEnd; i++, j++)
-	{
-		if (((uChar >> (7 - i)) & 1) == 1)
-			bitOn(j);
-	}
-	length = bitUnused == 0 ? length + 8 : length + bitUnused;
+	if (bitUnused == 0)
+		bitUnused = 8;
+	if (length + bitUnused >= 8 * 4)
+		return;
+	bit += (unsigned int) uChar << (8 * 3 - length);
+	length += bitUnused;
 }
 
 int BITS::operator[](int pos)
@@ -51,9 +48,7 @@ int BITS::operator[](int pos)
 	if (pos < 0 || pos >length)
 		return -1;
 
-	unsigned int tmp = bit;
-	tmp = (tmp >> (4 * 8 - 1 - pos)) & 1;
-	return tmp;
+	return (bit >> (4 * 8 - 1 - pos)) & 1;
 }
 
 BITS BITS::operator+(char _1_0)
@@ -73,16 +68,10 @@ BITS & BITS::operator+=(char _1_0)
 
 BITS & BITS::operator+=(BITS bits2)
 {
-	int i = 0, j = length;
-	for (; i < bits2.length; i++, j++)
-	{
-		if (bits2[i] == 1)
-			bitOn(j);
-	}
+	bit += bits2.bit >> length;
 	length += bits2.length;
 	return *this;
 }
-
 
 bool BITS::bitOn(int pos)
 {
