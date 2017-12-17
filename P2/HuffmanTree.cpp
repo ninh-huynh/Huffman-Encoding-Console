@@ -74,11 +74,10 @@ bool HuffmanTree::getChar(BITS & bits, unsigned char & c)
 	int index = root, i = 0;
 	while (!HuffTree[index].isLeaf() && i < bits.size())
 	{
-		if (bits[i] == 0)
+		if (bits[i++] == 0)
 			index = HuffTree[index].left;
 		else
 			index = HuffTree[index].right;
-		i++;
 	}
 
 	if (HuffTree[index].isLeaf())
@@ -89,6 +88,31 @@ bool HuffmanTree::getChar(BITS & bits, unsigned char & c)
 	}
 	else
 		return false;
+
+
+}
+
+bool HuffmanTree::tryGetChar(short index, BITS  bits, unsigned char & c)
+{
+	if (HuffTree[index].isLeaf())
+	{
+		c = index;
+		return true;
+	}
+	
+	if (bits.size() == 0)
+		return false;
+
+	bits.removeBit(1);
+	if (bits[0] == 0)
+		tryGetChar(HuffTree[index].left, bits, c);
+	else
+		tryGetChar(HuffTree[index].right, bits, c);
+}
+
+bool HuffmanTree::tryGetChar(BITS bits, unsigned char & c)
+{
+	return tryGetChar(root, bits, c);
 }
 
 void HuffmanTree::huffTreeOut()

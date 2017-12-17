@@ -16,6 +16,7 @@ private:
 	HuffmanNode HuffTree[MAX_NODE];
 	BITS bitCode[256];
 	void createBitCode(short index, BITS bitcode_);
+	bool tryGetChar(short index, BITS bits, unsigned char &c);
 public:
 	HuffmanTree()
 	{
@@ -32,6 +33,8 @@ public:
 		return bitCode[c];
 	}
 	bool getChar(BITS &bits, unsigned char &c);
+	
+	bool tryGetChar(BITS bits, unsigned char &c);
 	void huffTreeOut();
 	void bitCodeOut();
 };

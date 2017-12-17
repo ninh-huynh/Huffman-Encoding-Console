@@ -9,7 +9,7 @@ int main()
 	int choice;
 	cout << "Huffman Compression Program\n";
 	cout << "1. Compress files in folder\n";
-	cout << "2. View compressed filed info\n";
+	cout << "2. View compressed file info\n";
 	cout << "3. Uncompress all file\n";
 	cout << "4. Uncompress specific file\n";
 	cout << "0. Exit\n";
@@ -21,32 +21,30 @@ int main()
 		switch (choice)
 		{
 		case 1:
-			cout << "Enter the path to folder contain files :";
+			cout << "Enter the path to directory contain files: ";
 			cin.ignore();
 			cin.getline(buff, 1024);
-			cout << "Enter the result path + file name :";
-			//cin.ignore();
+			cout << "Enter the path to result file name: ";
 			cin.getline(buff1, 1024);
 			HFE.Encode_a_Folder(buff, buff1);
 			break;
 		case 2:
-			cout << "Enter the path to compressed file:";
+			cout << "Enter the path to compressed file: ";
 			cin.ignore();
 			cin.getline(buff, 1024);
 			HFE.ListFiles(buff);
 			break;
 		case 3: case 4:
-			cout << "Enter the path to compressed file:";
+			cout << "Enter the path to compressed file (with extension): ";
 			cin.ignore();
 			cin.getline(buff, 1024);
-			cout << "Enter the folder contain uncompress files:";
-			//cin.ignore();
+			cout << "Enter the path to directory contain uncompress files: ";
 			cin.getline(buff1, 1024);
 			QUEUE<int> idList;
 			if (choice == 4)
 			{
 				HFE.ListFiles(buff);
-				cout << "Nhap stt cac file can giai nen. Nhap 0 de ket thuc";
+				cout << "Type index file to uncompress. 0 to finish: ";
 				cin >> choice;
 				while (choice)
 				{
@@ -70,13 +68,3 @@ int main()
 
 	return 0;
 }
-
-//int main()
-//{
-//	BITS bits;
-//	bits.push_back(0x19);
-//	bits.toString();	cout << endl;
-//	bits.push_back(0x19);
-//	bits.toString();	cout << endl;
-//	system("pause");
-//}

@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Static Huffman.h"
 
-void HuffmanEncoding::convertByte_Bit(char &bit_unused)
+void HuffmanEncoding::convertByte_Bit(char &bit_unused, fstream& inputFile, fstream& outputFile)
 {
 	unsigned char c, byteOut;
 	BITS bits;
@@ -27,7 +27,7 @@ void HuffmanEncoding::convertByte_Bit(char &bit_unused)
 	outputFile.write((char*)&byteOut, 1);
 }
 
-void HuffmanEncoding::convertBit_Byte(char fileID)
+void HuffmanEncoding::convertBit_Byte(char fileID, fstream& inputFile, fstream& outputFile)
 {
 	inputFile.seekg(header.data[fileID].address);
 	unsigned char c, getBit = 0;
@@ -39,7 +39,7 @@ void HuffmanEncoding::convertBit_Byte(char fileID)
 	while (pos != header.data[fileID].address + header.data[fileID].compressSz)
 	{
 		bits.push_back(c);
-		
+
 		while (tree.getChar(bits, c) == true)
 			outputFile.write((char*)&c, 1);
 
@@ -54,11 +54,11 @@ void HuffmanEncoding::convertBit_Byte(char fileID)
 		outputFile.write((char*)&c, 1);
 }
 
-void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id)
+void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id, fstream& outputFile)
 {
 	//Compress Data File
-	inputFile.open(inputFilePath, ios::binary | ios::in);
-	convertByte_Bit(header.data[id].bitUnused);
+	fstream inputFile(inputFilePath, ios::binary | ios::in);
+	convertByte_Bit(header.data[id].bitUnused, inputFile, outputFile);
 
 	//Calculate for the compressSz 
 	unsigned int packedSz;
@@ -71,24 +71,23 @@ void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id)
 	inputFile.close();
 }
 
-void HuffmanEncoding::Decode_a_File(const char * outputFolder, int id)
+void HuffmanEncoding::Decode_a_File(const char * outputFolder, int id, fstream& inputFile)
 {
 	char sPath[512];
 	sprintf(sPath, "%s\\%s", outputFolder, header.data[id - 1].fileName);
-	outputFile.open(sPath, ios::binary | ios::out);
-	convertBit_Byte(id - 1);
+	fstream outputFile(sPath, ios::binary | ios::out);
+	convertBit_Byte(id - 1, inputFile, outputFile);
 	int decodeSz = 0;
 	decodeSz =(unsigned int) outputFile.tellp();
 	checkSum = decodeSz == header.data[id - 1].originalSz ? true : false;
-	printf("%2.d %s\t%s Done!\n", id, header.data[id - 1].fileName, checkSum ? "No Error" : "Error");
+	printf("%2d. %-40s %-10s Done!\n", id, header.data[id - 1].fileName, checkSum ? "No Error" : "Error");
 	outputFile.close();
 }
 
 void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outputFolder, QUEUE<int> &idList)
 {
-	
-	Read_a_File(inputFileName);
-	inputFile.open(inputFileName, ios::binary | ios::in);
+	Saving_to_header(inputFileName);
+	fstream inputFile(inputFileName, ios::binary | ios::in);
 	tree.initFeqTab(header.Freq);
 	tree.buildTree();
 	tree.createBitcode();
@@ -102,18 +101,18 @@ void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outpu
 	
 	while (idList.dequeue(i) == true)
 	{
-		Decode_a_File(outputFolder, i);
+		Decode_a_File(outputFolder, i, inputFile);
 	}
 	inputFile.close();
 }
 
 void HuffmanEncoding::ListFiles(const char * fileName)
 {
-	Read_a_File(fileName);
-	printf("   File name\t\tSize\t\tPacked\n");
+	Saving_to_header(fileName);
+	printf("%3s %-40s %-14s %-14s\n", " ", "File name", "Original Size", "Packed Size");
 	for (int i = 0; i < header.nFile; i++)
 	{
-		printf("%2.d %s\t\t%d\t\t%d\n", i+1, header.data[i].fileName, header.data[i].originalSz, header.data[i].compressSz);
+		printf("%2d. %-40s %-14d %-14d\n", i + 1, header.data[i].fileName, header.data[i].originalSz, header.data[i].compressSz);
 	}
 }
 
@@ -172,9 +171,9 @@ void HuffmanEncoding::computeAddress()
 	}
 }
 
-void HuffmanEncoding::Read_a_File(const char * inputFileName)
+void HuffmanEncoding::Saving_to_header(const char * inputFileName)
 {
-	inputFile.open(inputFileName, ios::binary | ios::in);
+	fstream inputFile(inputFileName, ios::binary | ios::in);
 	header.read(inputFile);
 	inputFile.close();
 }
@@ -182,15 +181,17 @@ void HuffmanEncoding::Read_a_File(const char * inputFileName)
 void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileName)
 {
 	PrepareForEncode(sDir);
-	outputFile.open(outputFileName, ios::binary | ios::out);
+	char outFileNameWithExt[256];
+	sprintf(outFileNameWithExt, "%s.hfm", outputFileName);
+	fstream outputFile(outFileNameWithExt, ios::binary | ios::out);
 
 	header.write(outputFile);
 	char sPath[256];
 	for (int i = 0; i < header.nFile; i++)
 	{
 		sprintf(sPath, "%s\\%s", sDir, header.data[i].fileName);
-		Encode_a_File(sPath, i);
-		printf("%s\t%d Done!\n", header.data[i].fileName, header.data[i].originalSz);
+		Encode_a_File(sPath, i, outputFile);
+		printf("%2d. %-40s Done!\n", i + 1, header.data[i].fileName);
 	}
 
 	computeAddress();

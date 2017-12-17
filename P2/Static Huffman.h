@@ -10,16 +10,15 @@ class HuffmanEncoding
 {
 private:
 	CompressFileHeader header;
-	fstream inputFile, outputFile;
 	HuffmanTree tree;
 	bool checkSum;
-	void convertByte_Bit(char &bit_unused);
-	void convertBit_Byte(char fileID);
+	void convertByte_Bit(char &bit_unused, fstream& inputFile, fstream& outputFile);
+	void convertBit_Byte(char fileID, fstream& inputFile, fstream& outputFile);
 	void PrepareForEncode(const char *sDir);
 	void computeAddress();
-	void Read_a_File(const char *inputFileName);
-	void Encode_a_File(const char *inputFilePath, int id);
-	void Decode_a_File(const char * outputFolder, int id);
+	void Saving_to_header(const char *inputFileName);
+	void Encode_a_File(const char *inputFilePath, int id, fstream& outputFile);
+	void Decode_a_File(const char * outputFolder, int id, fstream& inputFile);
 	void viewSavingInfo();
 public:
 	void Encode_a_Folder(const char *sDir, const char *outputName);
