@@ -80,7 +80,7 @@ void HuffmanEncoding::Decode_a_File(const char * outputFolder, int id, fstream& 
 	int decodeSz = 0;
 	decodeSz =(unsigned int) outputFile.tellp();
 	checkSum = decodeSz == header.data[id - 1].originalSz ? true : false;
-	printf("%2d. %-40s %-10s Done!\n", id, header.data[id - 1].fileName, checkSum ? "No Error" : "Error");
+	printf("%2d. %-70s %-10s Done!\n", id, header.data[id - 1].fileName, checkSum ? "No Error" : "Error");
 	outputFile.close();
 }
 
@@ -109,10 +109,10 @@ void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outpu
 void HuffmanEncoding::ListFiles(const char * fileName)
 {
 	Saving_to_header(fileName);
-	printf("%3s %-40s %-14s %-14s\n", " ", "File name", "Original Size", "Packed Size");
+	printf("%3s %-70s %-14s %-14s\n", " ", "File name", "Original Size", "Packed Size");
 	for (int i = 0; i < header.nFile; i++)
 	{
-		printf("%2d. %-40s %-14d %-14d\n", i + 1, header.data[i].fileName, header.data[i].originalSz, header.data[i].compressSz);
+		printf("%2d. %-70s %-14d %-14d\n", i + 1, header.data[i].fileName, header.data[i].originalSz, header.data[i].compressSz);
 	}
 }
 
@@ -191,7 +191,7 @@ void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileNa
 	{
 		sprintf(sPath, "%s\\%s", sDir, header.data[i].fileName);
 		Encode_a_File(sPath, i, outputFile);
-		printf("%2d. %-40s Done!\n", i + 1, header.data[i].fileName);
+		printf("%2d. %-70s Done!\n", i + 1, header.data[i].fileName);
 	}
 
 	computeAddress();
