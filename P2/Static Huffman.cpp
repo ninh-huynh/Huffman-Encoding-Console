@@ -1,4 +1,5 @@
 #include "Static Huffman.h"
+#define MAX_BUFF_BLOCK 512
 
 static CompressFileHeader *header;
 static HuffmanTree *tree;
@@ -6,55 +7,58 @@ static bool checkSum;
 
 void HuffmanEncoding::convertByte_Bit(char &bit_unused, fstream& inputFile, fstream& outputFile)
 {
-	unsigned char c, byteOut;
+	unsigned char byteOut;
 	BITS bits;
 
-	inputFile.read((char*)&c, 1);
-	while (!inputFile.eof())
+	char blockBuff[MAX_BUFF_BLOCK];
+	do
 	{
-		if (!bits.isByte())
+		inputFile.read(blockBuff, MAX_BUFF_BLOCK);
+		int bytesRead = inputFile.gcount();
+		for (size_t i = 0; i < bytesRead; i++)
 		{
-			bits += tree->getBitCode(c);
-			inputFile.read((char*)&c, 1);
+			bits += tree->getBitCode(blockBuff[i]);
+			while (bits.isByte()) 
+			{
+				bits.pop_a_Byte(byteOut);
+				outputFile.write((char*)&byteOut, 1);
+			}
 		}
-
-		while (bits.isByte())
-		{
-			bits.pop_a_Byte(byteOut);
-			outputFile.write((char*)&byteOut, 1);
-		}
-	}
-	//last byte (some bit may unused)
+	} while (!inputFile.eof());
+	
 	bit_unused = bits.size();
-	bits.pop_a_Byte(byteOut);
-	outputFile.write((char*)&byteOut, 1);
+	if (bit_unused > 0)
+	{
+		bits.pop_a_Byte(byteOut);
+		outputFile.write((char*)&byteOut, 1);
+	}
 }
 
 void HuffmanEncoding::convertBit_Byte(char fileID, fstream& inputFile, fstream& outputFile)
 {
 	inputFile.seekg(header->data[fileID].address);
-	unsigned char c, getBit = 0;
-	unsigned int pos;
+	unsigned char c;
 	BITS bits;
-	inputFile.read((char*)&c, 1);
-	pos = inputFile.tellg();
 
-	while (pos != header->data[fileID].address + header->data[fileID].compressSz)
+	char blockBuff[MAX_BUFF_BLOCK];
+	size_t j = 0;
+	do
 	{
-		bits.push_back(c);
+		inputFile.read(blockBuff, MAX_BUFF_BLOCK);
+		int byteRead = inputFile.gcount();
+		
+		for (size_t i = 0; i < byteRead
+						&& j < header->data[fileID].compressSz; i++, j++)
+		{
+			if (j == header->data[fileID].compressSz - 1)
+				bits.push_back(blockBuff[i], header->data[fileID].bitUnused);
+			else
+				bits.push_back(blockBuff[i]);
 
-		while (tree->getChar(bits, c) == true)
-			outputFile.write((char*)&c, 1);
-
-		inputFile.read((char*)&c, 1);
-		pos = inputFile.tellg();
-	}
-	//Process the last byte
-	if (header->data[fileID].bitUnused != 0)
-		bits.push_back(c, header->data[fileID].bitUnused);
-	
-	while (tree->getChar(bits, c) == true)
-		outputFile.write((char*)&c, 1);
+			while (tree->getChar(bits, c) == true)
+				outputFile.write((char*)&c, 1);
+		}
+	} while (j < header->data[fileID].compressSz);
 }
 
 void HuffmanEncoding::Encode_a_File(const char * inputFilePath, fstream& outputFile)
