@@ -57,8 +57,9 @@ void HuffmanEncoding::convertBit_Byte(char fileID, fstream& inputFile, fstream& 
 		outputFile.write((char*)&c, 1);
 }
 
-void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id, fstream& outputFile)
+void HuffmanEncoding::Encode_a_File(const char * inputFilePath, fstream& outputFile)
 {
+	static int id = 0;
 	//Compress Data File
 	fstream inputFile(inputFilePath, ios::binary | ios::in);
 	convertByte_Bit(header->data[id].bitUnused, inputFile, outputFile);
@@ -72,6 +73,7 @@ void HuffmanEncoding::Encode_a_File(const char * inputFilePath, int id, fstream&
 	header->data[id].compressSz = packedSz;
 	
 	inputFile.close();
+	id++;
 }
 
 void HuffmanEncoding::Decode_a_File(const char * outputFolder, int id, fstream& inputFile)
@@ -92,12 +94,11 @@ void HuffmanEncoding::Decode_Files(const char * inputFileName, const char *outpu
 	tree = new HuffmanTree();
 	header = new CompressFileHeader();
 
-	Saving_to_header(inputFileName);
+	LoadFileToHeader(inputFileName);
 	fstream inputFile(inputFileName, ios::binary | ios::in);
 	tree->initFeqTab(header->Freq);
 	tree->buildTree();
 	tree->createBitcode();
-	char sPath[512];
 	int i = 0;
 	if (idList.isEmpty())
 	{
@@ -119,11 +120,15 @@ void HuffmanEncoding::ListFiles(const char * fileName)
 {
 	header = new CompressFileHeader();
 	
-	Saving_to_header(fileName);
+	LoadFileToHeader(fileName);
 	printf("%3s %-70s %-14s %-14s\n", " ", "File name", "Original Size", "Packed Size");
 	for (int i = 0; i < header->nFile; i++)
 	{
-		printf("%2d. %-70s %-14d %-14d\n", i + 1, header->data[i].fileName, header->data[i].originalSz, header->data[i].compressSz);
+		printf("%2d. %-70s %-14d %-14d\n", 
+			i + 1, 
+			header->data[i].fileName, 
+			header->data[i].originalSz, 
+			header->data[i].compressSz);
 	}
 
 	delete header;
@@ -157,8 +162,7 @@ void HuffmanEncoding::PrepareForEncode(const char *sDir)
 		{
 			if (!(fdFile.dwFileAttributes &FILE_ATTRIBUTE_DIRECTORY))
 			{
-				static int id = 0;
-				header->setFileInfo(fdFile.cFileName, fdFile.nFileSizeLow, id++);
+				header->setFileInfo(fdFile.cFileName, fdFile.nFileSizeLow);
 				sprintf_s(sPath, "%s\\%s", sDir, fdFile.cFileName);
 				tree->countChar(sPath);
 			}
@@ -173,18 +177,16 @@ void HuffmanEncoding::PrepareForEncode(const char *sDir)
 
 void HuffmanEncoding::computeAddress()
 {
-	unsigned int totalSz = 0;
-	for (int i = 0; i < header->nFile; i++)
+	unsigned int totalSz = header->size();
+	header->data[0].address = totalSz;
+	for (int i = 1; i < header->nFile; i++)
 	{
-		if (i == 0)
-			totalSz = header->size();
-		else
-			totalSz += header->data[i - 1].compressSz;
+		totalSz += header->data[i - 1].compressSz;
 		header->data[i].address = totalSz;
 	}
 }
 
-void HuffmanEncoding::Saving_to_header(const char * inputFileName)
+void HuffmanEncoding::LoadFileToHeader(const char * inputFileName)
 {
 	fstream inputFile(inputFileName, ios::binary | ios::in);
 	header->read(inputFile);
@@ -206,7 +208,7 @@ void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileNa
 	for (int i = 0; i < header->nFile; i++)
 	{
 		sprintf_s(sPath, "%s\\%s", sDir, header->data[i].fileName);
-		Encode_a_File(sPath, i, outputFile);
+		Encode_a_File(sPath, outputFile);
 		printf("%2d. %-70s Done!\n", i + 1, header->data[i].fileName);
 	}
 
@@ -219,7 +221,7 @@ void HuffmanEncoding::Encode_a_Folder(const char *sDir, const char *outputFileNa
 	delete tree;
 }
 
-unsigned short getTotalFile(const char * sDir)
+short getTotalFile(const char * sDir)
 {
 	WIN32_FIND_DATA fdFile;
 	HANDLE hFind = NULL;
@@ -228,7 +230,7 @@ unsigned short getTotalFile(const char * sDir)
 	sprintf_s(sPath, "%s\\*.*", sDir);
 	if ((hFind = FindFirstFile(sPath, &fdFile)) == INVALID_HANDLE_VALUE)
 	{
-		
+		return -1;
 	}
 
 	//Count total file in Directory

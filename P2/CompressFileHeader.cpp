@@ -25,29 +25,30 @@ void CompressFileHeader::write(fstream &fOut)
 		data[i].write(fOut);
 }
 
-bool CompressFileHeader::read(fstream &fIn)
+void CompressFileHeader::read(fstream &fIn)
 {
 	fIn.read(signature, sizeof(signature));
 	if (strcmp(signature, "hfm") != 0)
-		return false;
+		throw std::invalid_argument("File not support!");
 	fIn.read((char*)&Freq, sizeof(Freq));
 	fIn.read((char*)&nFile, sizeof(nFile));
 	data = new DataFileInfo[nFile];
 	for (int i = 0; i < nFile; i++)
 		data[i].read(fIn);
-	return true;
 }
 
-void CompressFileHeader::setNumberOfFile(short nFile_)
+void CompressFileHeader::setNumberOfFile(short nFile)
 {
-	if (nFile_ < 1)
+	if (nFile < 1)
 		return;
-	nFile = nFile_;
+	this->nFile = nFile;
 	data = new DataFileInfo[nFile];
 }
 
-void CompressFileHeader::setFileInfo(const char * name, unsigned int size, char id)
+void CompressFileHeader::setFileInfo(const char * name, unsigned int size)
 {
+	static int id = 0;
 	data[id].initFileName(name);
 	data[id].originalSz = size;
+	id++;
 }

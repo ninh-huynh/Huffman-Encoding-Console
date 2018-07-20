@@ -1,6 +1,5 @@
-#pragma once
-#define _CRT_SECURE_NO_WARNINGS
 #include"DataFileInfo.h"
+
 class CompressFileHeader
 {
 public:
@@ -19,7 +18,7 @@ public:
 		return sz;
 	}
 	void write(fstream &fOut);
-	bool read(fstream &fIn);
+	void read(fstream &fIn);
 	void setNumberOfFile(short nFile);
-	void setFileInfo(const char *name, unsigned int size, char id);
+	void setFileInfo(const char *name, unsigned int size);
 };

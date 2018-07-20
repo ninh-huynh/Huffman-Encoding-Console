@@ -12,8 +12,8 @@ private:
 	static void convertBit_Byte(char fileID, fstream& inputFile, fstream& outputFile);
 	static void PrepareForEncode(const char *sDir);
 	static void computeAddress();
-	static void Saving_to_header(const char *inputFileName);
-	static void Encode_a_File(const char *inputFilePath, int id, fstream& outputFile);
+	static void LoadFileToHeader(const char *inputFileName);
+	static void Encode_a_File(const char *inputFilePath, fstream& outputFile);
 	static void Decode_a_File(const char * outputFolder, int id, fstream& inputFile);
 	static void viewSavingInfo();
 public:
@@ -22,4 +22,4 @@ public:
 	static void ListFiles(const char *fileName);
 };
 
-unsigned short getTotalFile(const char *dir);
+short getTotalFile(const char *dir);
