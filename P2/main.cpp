@@ -1,69 +1,73 @@
 #include<iostream>
-using namespace std;
-
 #include"Static Huffman.h"
 #include"Queue.cpp"
 
-int main()
+int main(int argc, char* argv[])
 {
+	//Useage:
+	//huff [Source Folder] [Result Folder] (By default, result folder is the source folder if not specify)
+	//ls [Source Path]
+	//unhuff [Source Path] [Filename 1] [Filename 2] ... (If you want decompress all files, leave the "Filename" blank) 
+	//exit
+	//
+
 	int choice;
-	cout << "Huffman Compression Program\n";
-	cout << "1. Compress files in folder\n";
-	cout << "2. View compressed file info\n";
-	cout << "3. Uncompress all file\n";
-	cout << "4. Uncompress specific file\n";
-	cout << "0. Exit\n";
-	cin >> choice;
+	std::cout << "Huffman Compression Program\n";
+	std::cout << "1. Compress files in folder\n";
+	std::cout << "2. View compressed file info\n";
+	std::cout << "3. Uncompress all file\n";
+	std::cout << "4. Uncompress specific file\n";
+	std::cout << "0. Exit\n";
+	std::cin >> choice;
 	while (choice)
 	{
 		char buff[256], buff1[256];
-		HuffmanEncoding HFE;
 		switch (choice)
 		{
 		case 1:
-			cout << "Enter the path to directory contain files: ";
-			cin.ignore();
-			cin.getline(buff, 1024);
-			cout << "Enter the path to result file name: ";
-			cin.getline(buff1, 1024);
-			HFE.Encode_a_Folder(buff, buff1);
+			std::cout << "Enter the path to directory contain files: ";
+			std::cin.ignore();
+			std::cin.getline(buff, 1024);
+			std::cout << "Enter the path to result file name: ";
+			std::cin.getline(buff1, 1024);
+			HuffmanEncoding::Encode_a_Folder(buff, buff1);
 			break;
 		case 2:
-			cout << "Enter the path to compressed file: ";
-			cin.ignore();
-			cin.getline(buff, 1024);
-			HFE.ListFiles(buff);
+			std::cout << "Enter the path to compressed file: ";
+			std::cin.ignore();
+			std::cin.getline(buff, 1024);
+			HuffmanEncoding::ListFiles(buff);
 			break;
 		case 3: case 4:
-			cout << "Enter the path to compressed file (with extension): ";
-			cin.ignore();
-			cin.getline(buff, 1024);
-			cout << "Enter the path to directory contain uncompress files: ";
-			cin.getline(buff1, 1024);
+			std::cout << "Enter the path to compressed file (with extension): ";
+			std::cin.ignore();
+			std::cin.getline(buff, 1024);
+			std::cout << "Enter the path to directory contain uncompress files: ";
+			std::cin.getline(buff1, 1024);
 			QUEUE<int> idList;
 			if (choice == 4)
 			{
-				HFE.ListFiles(buff);
-				cout << "Type index file to uncompress. 0 to finish: ";
-				cin >> choice;
+				HuffmanEncoding::ListFiles(buff);
+				std::cout << "Type index file to uncompress. 0 to finish: ";
+				std::cin >> choice;
 				while (choice)
 				{
 					idList.enqueue(choice);
-					cin >> choice;
+					std::cin >> choice;
 				}
 			}
-			HFE.Decode_Files(buff, buff1, idList);
+			HuffmanEncoding::Decode_Files(buff, buff1, idList);
 			break;
 		}
 		system("pause");
 		system("cls");
-		cout << "Huffman Compression Program\n";
-		cout << "1. Compress files in folder\n";
-		cout << "2. View compressed file info\n";
-		cout << "3. Uncompress all file\n";
-		cout << "4. Uncompress specific file\n";
-		cout << "0. Exit\n";
-		cin >> choice;
+		std::cout << "Huffman Compression Program\n";
+		std::cout << "1. Compress files in folder\n";
+		std::cout << "2. View compressed file info\n";
+		std::cout << "3. Uncompress all file\n";
+		std::cout << "4. Uncompress specific file\n";
+		std::cout << "0. Exit\n";
+		std::cin >> choice;
 	}
 
 	return 0;
